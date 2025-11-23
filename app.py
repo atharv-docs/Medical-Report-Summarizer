@@ -517,8 +517,7 @@ def process_text():
 @app.route("/demo", methods=["GET"])
 def get_demo_report():
     """Provide a sample medical report for testing"""
-    demo_report = """
-PATIENT: John Smith, 58-year-old male
+    demo_report = """PATIENT: John Smith, 58-year-old male
 CHIEF COMPLAINT: Chest discomfort and shortness of breath
 HISTORY OF PRESENT ILLNESS: Patient presents with substernal chest pain radiating to the left arm, associated with diaphoresis and nausea. Symptoms began approximately 3 hours prior to admission. Patient has a history of hypertension and hyperlipidemia.
 PHYSICAL EXAMINATION: BP 158/92, HR 108 bpm, RR 24, O2 saturation 94% on room air. Cardiac exam reveals regular rhythm without murmurs. Lungs clear to auscultation.
