@@ -1,37 +1,70 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>MedSimplify - AI Medical Report Analysis</title>
+
+    <!-- Tailwind CSS via CDN for rapid prototyping and responsive design -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <!-- Font Awesome for icons -->
+    <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    />
+
     <style>
+        /* Background gradient for header */
         .gradient-bg {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         }
+
+        /* Simple fade-in animation for smooth loading of sections */
         .fade-in {
             animation: fadeIn 0.5s ease-in;
         }
+
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
+
+        /* Custom style for medical sections in the AI summary */
         .medical-section {
-            border-left: 4px solid #10B981;
-            background: #F0FDF4;
+            border-left: 4px solid #10b981;
+            background: #f0fdf4;
             margin-bottom: 1rem;
         }
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen">
-    <!-- Header -->
+    <!-- Header with app title and Ollama status indicator -->
     <header class="gradient-bg text-white shadow-lg">
         <div class="container mx-auto px-4 py-6">
             <div class="flex items-center justify-between">
+                <!-- App logo and name -->
                 <div class="flex items-center space-x-3">
                     <i class="fas fa-brain text-3xl"></i>
                     <h1 class="text-3xl font-bold">MedSimplify AI</h1>
+                </div>
+
+                <!-- Ollama AI backend status indicator -->
+                <div
+                    id="ollamaStatus"
+                    class="flex items-center text-sm bg-white/10 px-3 py-1 rounded-full backdrop-blur"
+                >
+                    <span
+                        id="ollamaStatusDot"
+                        class="w-2 h-2 rounded-full mr-2 bg-gray-300"
+                    ></span>
+                    <span id="ollamaStatusText">Checking AI status...</span>
                 </div>
             </div>
         </div>
@@ -42,89 +75,170 @@
         <!-- Hero Section -->
         <div class="text-center mb-12 fade-in">
             <h2 class="text-4xl font-bold text-gray-800 mb-4">
-                AI-Powered Medical Report Analysis
+                AI Medical Report Analysis
             </h2>
             <p class="text-xl text-gray-600 max-w-3xl mx-auto">
-                Upload your medical report and get an intelligent, easy-to-understand analysis using MedSimplify.
+                Upload your medical report and get analysis using MedSimplify.
             </p>
         </div>
 
-        <!-- Upload Section -->
-        <div class="max-w-4xl mx-auto bg-white rounded-xl shadow-lg p-8 mb-8 fade-in">
+        <!-- Upload & Text Input Section -->
+        <div
+            class="max-w-4xl mx-auto bg-white rounded-xl shadow-lg p-8 mb-8 fade-in"
+        >
             <div class="grid md:grid-cols-2 gap-8">
-                <!-- File Upload -->
-                <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-400 transition-colors">
+                <!-- File Upload Area (supports drag and drop) -->
+                <div
+                    class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-400 transition-colors"
+                >
                     <i class="fas fa-file-upload text-4xl text-blue-500 mb-4"></i>
                     <h3 class="text-xl font-semibold mb-2">Upload Medical Report</h3>
-                    <p class="text-gray-600 mb-4">Upload image (JPG, PNG) or text file</p>
-                    
+                    <p class="text-gray-600 mb-4">
+                        Upload image (JPG, PNG, GIF) or text file (TXT)
+                    </p>
+
+                    <!-- Hidden file input; triggered by button or drag-and-drop -->
                     <form id="uploadForm" enctype="multipart/form-data">
-                        <input type="file" id="fileInput" name="file" accept=".txt,.jpg,.jpeg,.png,.gif" 
-                               class="hidden" onchange="handleFileSelect()">
-                        <button type="button" onclick="document.getElementById('fileInput').click()" 
-                                class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold transition-colors">
+                        <input
+                            type="file"
+                            id="fileInput"
+                            name="file"
+                            accept=".txt,.jpg,.jpeg,.png,.gif"
+                            class="hidden"
+                            onchange="handleFileSelect()"
+                        />
+                        <button
+                            type="button"
+                            onclick="document.getElementById('fileInput').click()"
+                            class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold transition-colors"
+                        >
                             <i class="fas fa-upload mr-2"></i>Choose File
                         </button>
                     </form>
                     <div id="fileName" class="mt-2 text-sm text-gray-500"></div>
                 </div>
 
-                <!-- Text Input -->
+                <!-- Textarea Input for direct report text -->
                 <div class="border-2 border-gray-200 rounded-lg p-6">
                     <i class="fas fa-keyboard text-4xl text-green-500 mb-4"></i>
                     <h3 class="text-xl font-semibold mb-2">Or Paste Report Text</h3>
-                    <p class="text-gray-600 mb-4">Copy and paste your medical report text</p>
-                    
-                    <textarea id="textInput" rows="6" 
-                              class="w-full border border-gray-300 rounded-lg p-4 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 resize-none"
-                              placeholder="Paste your medical report here..."></textarea>
-                    <button onclick="processText()" 
-                            class="bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-lg font-semibold mt-2 w-full transition-colors">
-                        <i class="fas fa-robot mr-2"></i>AI Analyze Report
+                    <p class="text-gray-600 mb-4">
+                        Copy and paste your medical report text
+                    </p>
+
+                    <textarea
+                        id="textInput"
+                        rows="6"
+                        class="w-full border border-gray-300 rounded-lg p-4 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 resize-none"
+                        placeholder="Paste your medical report here..."
+                    ></textarea>
+                    <button
+                        onclick="processText()"
+                        class="bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-lg font-semibold mt-2 w-full transition-colors"
+                    >
+                        AI Analyze Report
                     </button>
                 </div>
             </div>
 
-            <!-- Demo Button -->
+            <!-- Demo Button: loads a sample medical report for testing -->
             <div class="text-center mt-6">
-                <button onclick="loadDemo()" class="text-blue-600 hover:text-blue-800">
+                <button
+                    onclick="loadDemo()"
+                    class="text-blue-600 hover:text-blue-800"
+                >
                     <i class="fas fa-vial mr-2"></i>Try with Sample Medical Report
                 </button>
             </div>
 
-            <!-- Processing Indicator -->
-            <div id="processing" class="hidden text-center mt-8 p-6 bg-blue-50 rounded-lg">
+            <!-- Processing Indicator with time-based messages -->
+            <div
+                id="processing"
+                class="hidden text-center mt-8 p-6 bg-blue-50 rounded-lg"
+            >
                 <div class="flex items-center justify-center space-x-3">
-                    <div class="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-                    <span class="text-blue-700 font-semibold">AI is analyzing your medical report...</span>
+                    <div
+                        class="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"
+                    ></div>
+                    <span
+                        id="processingMainText"
+                        class="text-blue-700 font-semibold"
+                    >
+                        Reading your medical report...
+                    </span>
                 </div>
-                <p class="text-blue-600 text-sm mt-2">Using AI to simplify and explain your report</p>
+                <p class="text-blue-600 text-sm mt-2">
+                    Using AI to simplify and explain your report
+                </p>
             </div>
         </div>
 
-        <!-- Results Section -->
+        <!-- Results Section (hidden until AI returns a summary) -->
         <div id="results" class="hidden max-w-4xl mx-auto fade-in">
             <div class="bg-white rounded-xl shadow-lg p-8">
+                <!-- Header row with title and "Analyze another" action -->
                 <div class="flex items-center justify-between mb-6">
-                    <h3 class="text-2xl font-bold text-gray-800">AI Medical Report Analysis</h3>
-                    <button onclick="resetApp()" class="text-gray-500 hover:text-gray-700">
+                    <h3 class="text-2xl font-bold text-gray-800">
+                        AI Medical Report Analysis
+                    </h3>
+                    <button
+                        onclick="resetApp()"
+                        class="text-gray-500 hover:text-gray-700 text-sm"
+                    >
                         <i class="fas fa-redo mr-2"></i>Analyze Another
                     </button>
                 </div>
 
-                <!-- Summary Output -->
+                <!-- Summary Output with language toggle (English / Hindi) -->
                 <div class="bg-gray-50 rounded-lg p-6 border-l-4 border-green-500">
-                    <div class="flex items-center mb-4">
-                        <i class="fas fa-robot text-green-500 text-xl mr-3"></i>
-                        <h4 class="text-lg font-semibold text-gray-800">AI-Generated Summary</h4>
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center">
+                            <i
+                                class="fas fa-robot text-green-500 text-xl mr-3"
+                            ></i>
+                            <h4 class="text-lg font-semibold text-gray-800">
+                                AI-Generated Summary
+                            </h4>
+                        </div>
+
+                        <!-- Language Toggle Switch -->
+                        <div class="flex items-center space-x-2">
+                            <span
+                                class="text-xs font-medium text-gray-600"
+                            >
+                                Language
+                            </span>
+                            <div class="bg-white rounded-full p-1 flex">
+                                <button
+                                    id="langEnBtn"
+                                    class="px-3 py-1 text-xs font-semibold rounded-full bg-green-500 text-white"
+                                >
+                                    English
+                                </button>
+                                <button
+                                    id="langHiBtn"
+                                    class="px-3 py-1 text-xs font-semibold rounded-full text-gray-700"
+                                >
+                                    हिन्दी
+                                </button>
+                            </div>
+                        </div>
                     </div>
-                    <div id="summaryOutput" class="text-gray-700 leading-relaxed space-y-4"></div>
+
+                    <!-- Container where the HTML summary is injected -->
+                    <div
+                        id="summaryOutput"
+                        class="text-gray-700 leading-relaxed space-y-4"
+                    ></div>
                 </div>
             </div>
         </div>
 
-        <!-- Error Message -->
-        <div id="error" class="hidden max-w-4xl mx-auto mt-4 p-4 bg-red-50 border-l-4 border-red-500 rounded-lg fade-in">
+        <!-- Error Message Banner -->
+        <div
+            id="error"
+            class="hidden max-w-4xl mx-auto mt-4 p-4 bg-red-50 border-l-4 border-red-500 rounded-lg fade-in"
+        >
             <div class="flex items-center">
                 <i class="fas fa-exclamation-circle text-red-500 mr-3"></i>
                 <span id="errorMessage" class="text-red-700"></span>
@@ -132,49 +246,88 @@
         </div>
     </main>
 
-
     <script>
+        /*
+         * Global variables to store English and Hindi summaries
+         * so we can switch languages on the frontend without calling the backend again.
+         */
+        let summaryEnHtml = "";
+        let summaryHiHtml = "";
+        let currentLang = "en";
+
+        /*
+         * Variables for loading state with time-based messages.
+         * We store the start time and an interval ID for updates.
+         */
+        let processingStartTime = null;
+        let processingIntervalId = null;
+
+        /**
+         * Handle file selection from the file input.
+         * Shows file name and triggers the upload process.
+         */
         function handleFileSelect() {
-            const fileInput = document.getElementById('fileInput');
-            const fileName = document.getElementById('fileName');
-            
+            const fileInput = document.getElementById("fileInput");
+            const fileName = document.getElementById("fileName");
+
             if (fileInput.files.length > 0) {
                 fileName.textContent = `Selected: ${fileInput.files[0].name}`;
                 processFile();
             }
         }
 
+        /**
+         * Sends the selected file to the backend `/upload` endpoint using FormData.
+         */
         async function processFile() {
-            const fileInput = document.getElementById('fileInput');
-            const formData = new FormData();
-            formData.append('file', fileInput.files[0]);
+            const fileInput = document.getElementById("fileInput");
+            if (!fileInput.files.length) return;
 
-            await submitForm(formData, '/upload');
+            const formData = new FormData();
+            formData.append("file", fileInput.files[0]);
+
+            await submitForm(formData, "/upload");
         }
 
+        /**
+         * Sends the pasted text to the backend `/text` endpoint as JSON.
+         * Enforces a minimum length for meaningful medical text.
+         */
         async function processText() {
-            const textInput = document.getElementById('textInput');
+            const textInput = document.getElementById("textInput");
             const text = textInput.value.trim();
 
             if (text.length < 30) {
-                showError('Please enter a longer medical report (at least 30 characters).');
+                showError(
+                    "Please enter a longer medical report (at least 30 characters)."
+                );
                 return;
             }
 
-            await submitForm({ text: text }, '/text');
+            await submitForm({ text: text }, "/text");
         }
 
+        /**
+         * Loads a demo medical report from `/demo`
+         * and populates the textarea for quick testing.
+         */
         async function loadDemo() {
             try {
-                const response = await fetch('/demo');
+                const response = await fetch("/demo");
                 const data = await response.json();
-                document.getElementById('textInput').value = data.demo_report;
-                showMessage('Demo report loaded. Click "AI Analyze Report" to continue.', 'blue');
+                document.getElementById("textInput").value = data.demo_report;
+                showMessage(
+                    'Demo report loaded. Click "AI Analyze Report" to continue.'
+                );
             } catch (error) {
-                showError('Failed to load demo report.');
+                showError("Failed to load demo report.");
             }
         }
 
+        /**
+         * Core function that sends data to a given endpoint.
+         * Handles both FormData (file upload) and JSON (text input).
+         */
         async function submitForm(data, endpoint) {
             showProcessing();
             hideError();
@@ -182,11 +335,15 @@
 
             try {
                 const response = await fetch(endpoint, {
-                    method: 'POST',
-                    headers: endpoint === '/text' ? {
-                        'Content-Type': 'application/json'
-                    } : {},
-                    body: endpoint === '/text' ? JSON.stringify(data) : data
+                    method: "POST",
+                    headers:
+                        endpoint === "/text"
+                            ? {
+                                  "Content-Type": "application/json",
+                              }
+                            : {},
+                    body:
+                        endpoint === "/text" ? JSON.stringify(data) : data,
                 });
 
                 const result = await response.json();
@@ -194,94 +351,305 @@
                 if (result.success) {
                     showResults(result);
                 } else {
-                    showError(result.error);
+                    showError(result.error || "Processing failed.");
                 }
             } catch (error) {
-                showError('Network error. Please check your connection and try again.');
+                showError(
+                    "Network error. Please check your connection and try again."
+                );
             } finally {
                 hideProcessing();
             }
         }
 
+        /**
+         * Show the processing indicator and start the timer for dynamic messages.
+         * 0–3s: “Reading your medical report…”
+         * 3–7s: “Simplifying medical language…”
+         * >7s: “Almost done, just finishing details…”
+         */
         function showProcessing() {
-            document.getElementById('processing').classList.remove('hidden');
+            const processing = document.getElementById("processing");
+            const mainText = document.getElementById("processingMainText");
+
+            if (!processing || !mainText) return;
+
+            processing.classList.remove("hidden");
+            processingStartTime = Date.now();
+            mainText.textContent = "Reading your medical report...";
+
+            if (processingIntervalId) {
+                clearInterval(processingIntervalId);
+            }
+
+            processingIntervalId = setInterval(() => {
+                const elapsed =
+                    (Date.now() - processingStartTime) / 1000;
+                if (elapsed < 3) {
+                    mainText.textContent =
+                        "Reading your medical report...";
+                } else if (elapsed < 7) {
+                    mainText.textContent =
+                        "Simplifying medical language...";
+                } else {
+                    mainText.textContent =
+                        "Almost done, just finishing details...";
+                }
+            }, 500);
         }
 
+        /**
+         * Hide the processing indicator and stop the timer.
+         */
         function hideProcessing() {
-            document.getElementById('processing').classList.add('hidden');
+            const processing = document.getElementById("processing");
+            if (processing) {
+                processing.classList.add("hidden");
+            }
+            if (processingIntervalId) {
+                clearInterval(processingIntervalId);
+                processingIntervalId = null;
+            }
         }
 
+        /**
+         * Display the AI results.
+         * Stores English and Hindi summaries and initializes the language toggle.
+         */
         function showResults(data) {
-            document.getElementById('summaryOutput').innerHTML = data.summary;
-            document.getElementById('results').classList.remove('hidden');
-            document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
+            summaryEnHtml = data.summary_en || "";
+            summaryHiHtml = data.summary_hi || data.summary_en || "";
+            currentLang = "en";
+
+            updateSummaryLanguage();
+
+            const results = document.getElementById("results");
+            results.classList.remove("hidden");
+            results.scrollIntoView({ behavior: "smooth" });
+
+            // Initialize language toggle buttons
+            const langEnBtn = document.getElementById("langEnBtn");
+            const langHiBtn = document.getElementById("langHiBtn");
+
+            if (langEnBtn && langHiBtn) {
+                langEnBtn.onclick = () => {
+                    currentLang = "en";
+                    updateSummaryLanguage();
+
+                    langEnBtn.classList.add("bg-green-500", "text-white");
+                    langEnBtn.classList.remove("text-gray-700");
+
+                    langHiBtn.classList.remove("bg-green-500", "text-white");
+                    langHiBtn.classList.add("text-gray-700");
+                };
+
+                langHiBtn.onclick = () => {
+                    currentLang = "hi";
+                    updateSummaryLanguage();
+
+                    langHiBtn.classList.add("bg-green-500", "text-white");
+                    langHiBtn.classList.remove("text-gray-700");
+
+                    langEnBtn.classList.remove("bg-green-500", "text-white");
+                    langEnBtn.classList.add("text-gray-700");
+                };
+            }
         }
 
+        /**
+         * Update the summary output based on the active language.
+         * This function only manipulates DOM and does not call the backend.
+         */
+        function updateSummaryLanguage() {
+            const summaryOutput =
+                document.getElementById("summaryOutput");
+            if (!summaryOutput) return;
+
+            if (currentLang === "hi") {
+                summaryOutput.innerHTML =
+                    summaryHiHtml || summaryEnHtml;
+            } else {
+                summaryOutput.innerHTML =
+                    summaryEnHtml || summaryHiHtml;
+            }
+        }
+
+        /**
+         * Hide the results section and clear stored summaries.
+         */
         function hideResults() {
-            document.getElementById('results').classList.add('hidden');
+            document.getElementById("results").classList.add("hidden");
+            const summaryOutput =
+                document.getElementById("summaryOutput");
+            if (summaryOutput) summaryOutput.innerHTML = "";
+            summaryEnHtml = "";
+            summaryHiHtml = "";
         }
 
+        /**
+         * Display an error message banner.
+         */
         function showError(message) {
-            document.getElementById('errorMessage').textContent = message;
-            document.getElementById('error').classList.remove('hidden');
-            document.getElementById('error').scrollIntoView({ behavior: 'smooth' });
+            document.getElementById("errorMessage").textContent =
+                message;
+            document
+                .getElementById("error")
+                .classList.remove("hidden");
+            document
+                .getElementById("error")
+                .scrollIntoView({ behavior: "smooth" });
         }
 
-        function showMessage(message, color = 'blue') {
-            // Simple message display
+        /**
+         * Simple message display for non-critical notifications.
+         */
+        function showMessage(message, color = "blue") {
             alert(message);
         }
 
+        /**
+         * Hide the error banner.
+         */
         function hideError() {
-            document.getElementById('error').classList.add('hidden');
+            document.getElementById("error").classList.add("hidden");
         }
 
+        /**
+         * Reset the app to initial state so user can analyze another report.
+         */
         function resetApp() {
-            document.getElementById('fileInput').value = '';
-            document.getElementById('fileName').textContent = '';
-            document.getElementById('textInput').value = '';
+            document.getElementById("fileInput").value = "";
+            document.getElementById("fileName").textContent = "";
+            document.getElementById("textInput").value = "";
             hideResults();
             hideError();
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+            window.scrollTo({ top: 0, behavior: "smooth" });
         }
 
-        // Drag and drop functionality
-        document.addEventListener('DOMContentLoaded', function() {
-            const dropArea = document.querySelector('.border-dashed');
+        /**
+         * DOMContentLoaded: initialize drag-and-drop for file upload
+         * and check backend (Ollama) status once on page load.
+         */
+        document.addEventListener("DOMContentLoaded", function () {
+            const dropArea =
+                document.querySelector(".border-dashed");
 
-            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-                dropArea.addEventListener(eventName, preventDefaults, false);
-            });
+            // Prevent default browser behavior for drag/drop
+            ["dragenter", "dragover", "dragleave", "drop"].forEach(
+                (eventName) => {
+                    dropArea.addEventListener(
+                        eventName,
+                        preventDefaults,
+                        false
+                    );
+                }
+            );
 
             function preventDefaults(e) {
                 e.preventDefault();
                 e.stopPropagation();
             }
 
-            ['dragenter', 'dragover'].forEach(eventName => {
-                dropArea.addEventListener(eventName, highlight, false);
+            // Visual highlight for drag-over
+            ["dragenter", "dragover"].forEach((eventName) => {
+                dropArea.addEventListener(
+                    eventName,
+                    highlight,
+                    false
+                );
             });
 
-            ['dragleave', 'drop'].forEach(eventName => {
-                dropArea.addEventListener(eventName, unhighlight, false);
+            ["dragleave", "drop"].forEach((eventName) => {
+                dropArea.addEventListener(
+                    eventName,
+                    unhighlight,
+                    false
+                );
             });
 
             function highlight() {
-                dropArea.classList.add('border-blue-400', 'bg-blue-50');
+                dropArea.classList.add("border-blue-400", "bg-blue-50");
             }
 
             function unhighlight() {
-                dropArea.classList.remove('border-blue-400', 'bg-blue-50');
+                dropArea.classList.remove(
+                    "border-blue-400",
+                    "bg-blue-50"
+                );
             }
 
-            dropArea.addEventListener('drop', handleDrop, false);
+            // Handle actual drop event by assigning files to input
+            dropArea.addEventListener("drop", handleDrop, false);
 
             function handleDrop(e) {
                 const dt = e.dataTransfer;
                 const files = dt.files;
-                document.getElementById('fileInput').files = files;
+                document.getElementById("fileInput").files = files;
                 handleFileSelect();
             }
+
+            /**
+             * Check backend AI (Ollama) status by calling `/status`.
+             * Updates the status dot and text in the header.
+             */
+            function updateOllamaStatus() {
+                fetch("/status")
+                    .then((res) => res.json())
+                    .then((data) => {
+                        const dot =
+                            document.getElementById(
+                                "ollamaStatusDot"
+                            );
+                        const text =
+                            document.getElementById(
+                                "ollamaStatusText"
+                            );
+                        if (!dot || !text) return;
+
+                        if (
+                            data &&
+                            data.ollama &&
+                            data.ollama.online
+                        ) {
+                            dot.classList.remove(
+                                "bg-red-400",
+                                "bg-yellow-400",
+                                "bg-gray-300"
+                            );
+                            dot.classList.add("bg-green-400");
+                            text.textContent = "AI status: Online";
+                        } else {
+                            dot.classList.remove(
+                                "bg-green-400",
+                                "bg-gray-300"
+                            );
+                            dot.classList.add("bg-red-400");
+                            text.textContent = "AI status: Offline";
+                        }
+                    })
+                    .catch(() => {
+                        const dot =
+                            document.getElementById(
+                                "ollamaStatusDot"
+                            );
+                        const text =
+                            document.getElementById(
+                                "ollamaStatusText"
+                            );
+                        if (!dot || !text) return;
+                        dot.classList.remove(
+                            "bg-green-400",
+                            "bg-gray-300"
+                        );
+                        dot.classList.add("bg-red-400");
+                        text.textContent = "AI status: Error";
+                    });
+            }
+
+            // Call status check once on page load
+            updateOllamaStatus();
+            // Optionally re-check every 60 seconds:
+            // setInterval(updateOllamaStatus, 60000);
         });
     </script>
 </body>
