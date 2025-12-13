@@ -1,4 +1,4 @@
-# MedSimplify AI 🩺
+# MedSimplify AI 
 
 MedSimplify is a web app that takes complex medical reports as text or images and converts them into simple explanations in English and Hindi using an Ollama LLM backend
 
@@ -35,8 +35,7 @@ The goal is to help patients and families understand medical information in a cl
 
 ## Project Structure
 
-Basic layout:
-
+```text
 project-root/
 ├── main.py                  # Flask backend
 ├── requirements.txt
@@ -44,8 +43,7 @@ project-root/
 ├── uploads/                # Temporary upload folder
 └── templates/
     └── index.html          # Frontend UI
-
-
+```
 
 ## Setup & Installation
 
@@ -55,13 +53,15 @@ project-root/
 1. Extract the project
 
 2. Project structure should look like:
-   project-root/
-   ├── main.py
-   ├── requirements.txt
-   ├── README.md
-   ├── uploads/
-   └── templates/
-       └── index.html
+```text
+project-root/
+├── main.py                  # Flask backend
+├── requirements.txt
+├── README.md
+├── uploads/                # Temporary upload folder
+└── templates/
+    └── index.html          # Frontend UI
+```
 
 3. Install Python 3.9+
    python --version
@@ -83,19 +83,18 @@ project-root/
      Install Tesseract and add it to PATH.
 
 7. Configure environment variables (added my own for this submission and can be changed as per requirement):
-   FLASK_SECRET_KEY
-   UPLOAD_FOLDER
-   OLLAMA_BASE_URL
-   OLLAMA_MODEL
-
-8. Run the application:
+   - FLASK_SECRET_KEY
+   - UPLOAD_FOLDER
+   - OLLAMA_BASE_URL
+   - OLLAMA_MODEL
+9. Run the application:
    In the terminal run - python main.py
    Go to http://localhost:5000
 
-9. Test features:
+10. Test features:
    - Demo report
    - Upload
    - Paste text
    - Ollama status check
 
-10. Thank you :)
+11. Thank you :)
