@@ -50,7 +50,7 @@ class OllamaMedicalAnalyzer:
     def __init__(self):
         # Base URL of Ollama backend (can be self-hosted).
         self.base_url = os.getenv(
-            "OLLAMA_BASE_URL", "https://ollama.thearogyamfoundation.info"
+            "OLLAMA_BASE_URL", "http://localhost:11434"
         )
         # Default model name for the Ollama backend.
         self.model = os.getenv("OLLAMA_MODEL", "gpt-oss:20b-cloud")
